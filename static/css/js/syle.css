@@ -1,0 +1,80 @@
+/* ── CSS VARIABLES - LIGHT THEME ── */
+:root {
+  --bg: #fff5f7;
+  --surface: #ffffff;
+  --surface2: #fce4ec;
+  --border: #f8bbd0;
+  --accent: #e91e8c;
+  --accent2: #f06292;
+  --accent3: #fce4ec;
+  --text: #2d1b2e;
+  --text2: #7b4f6e;
+  --text3: #b07890;
+  --btn-num: #ffffff;
+  --btn-num-border: #f8bbd0;
+  --btn-num-shadow: #fce4ec;
+  --btn-op: #fce4ec;
+  --btn-op-text: #c2185b;
+  --btn-special: #f8bbd0;
+  --btn-eq: #e91e8c;
+  --btn-eq-text: #ffffff;
+  --display-bg: #fff0f5;
+  --display-border: #f8bbd0;
+  --history-bg: #fff5f7;
+  --result-color: #e91e8c;
+  --tab-active: #e91e8c;
+  --tab-active-text: #ffffff;
+  --shadow: 0 8px 32px rgba(233, 30, 140, 0.10);
+  --radius-sm: 12px;
+  --radius-btn: 14px;
+}
+
+/* ── CSS VARIABLES - DARK THEME ── */
+[data-theme="dark"] {
+  --bg: #1a0e1a;
+  --surface: #2a1a2e;
+  --surface2: #3a1f3a;
+  --border: #5c2d5c;
+  --accent: #f06292;
+  --accent2: #e91e8c;
+  --accent3: #4a1f3a;
+  --text: #fce4ec;
+  --text2: #f48fb1;
+  --text3: #ad6488;
+  --btn-num: #2e1a2e;
+  --btn-num-border: #5c2d5c;
+  --btn-num-shadow: #1a0e1a;
+  --btn-op: #3a1f3a;
+  --btn-op-text: #f48fb1;
+  --btn-special: #4a1a3a;
+  --btn-eq: #e91e8c;
+  --btn-eq-text: #ffffff;
+  --display-bg: #231423;
+  --display-border: #5c2d5c;
+  --history-bg: #1a0e1a;
+  --result-color: #f06292;
+  --tab-active: #e91e8c;
+  --tab-active-text: #ffffff;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* ── RESET ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── BODY ── */
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 16px;
+  transition: background 0.3s, color 0.3s;
+}

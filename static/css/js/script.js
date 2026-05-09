@@ -191,3 +191,81 @@ async function calcLogic() {
     err.classList.add('show');
   }
 }
+
+// ── TRANSFORM ─────────────────────────────────────────────────────────────
+function switchTransform(name, btn) {
+  selectedTransform = name;
+  document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['base', 'temp', 'currency', 'factorial', 'fibonacci'].forEach(k => {
+    document.getElementById('tf-' + k).style.display = (k === name) ? '' : 'none';
+  });
+  document.getElementById('tf-result').classList.remove('show');
+  document.getElementById('tf-error').classList.remove('show');
+}
+
+async function calcTransform() {
+  const err = document.getElementById('tf-error');
+  err.classList.remove('show');
+  let body = { kind: selectedTransform };
+
+  if (selectedTransform === 'base') {
+    body.num  = document.getElementById('base-num').value;
+    body.from = document.getElementById('base-from').value;
+    body.to   = document.getElementById('base-to').value;
+  } else if (selectedTransform === 'temp') {
+    body.val  = document.getElementById('temp-val').value;
+    body.from = document.getElementById('temp-from').value;
+    body.to   = document.getElementById('temp-to').value;
+  } else if (selectedTransform === 'currency') {
+    body.amount = document.getElementById('curr-amount').value;
+    body.from   = document.getElementById('curr-from').value;
+    body.to     = document.getElementById('curr-to').value;
+  } else if (selectedTransform === 'factorial') {
+    body.n = document.getElementById('fact-n').value;
+  } else if (selectedTransform === 'fibonacci') {
+    body.n = document.getElementById('fib-n').value;
+  }
+
+  try {
+    const res = await fetch('/api/transform', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.error) {
+      err.textContent = data.error;
+      err.classList.add('show');
+      return;
+    }
+    showResult('tf', data);
+    addHistory(data.formula, data.result, 'Transformasi');
+  } catch (e) {
+    err.textContent = 'Terjadi kesalahan';
+    err.classList.add('show');
+  }
+}
+
+// ── SHARED HELPERS ────────────────────────────────────────────────────────
+function showResult(prefix, data) {
+  const box = document.getElementById(prefix + '-result');
+  document.getElementById(prefix + '-rval').textContent = data.result;
+  document.getElementById(prefix + '-rformula').textContent = data.formula;
+  const stepsList = document.getElementById(prefix + '-steps');
+  stepsList.innerHTML = (data.steps || [])
+    .map(s => `<div class="step-item">${s}</div>`)
+    .join('');
+  stepsList.classList.remove('open');
+  stepsList.previousElementSibling.textContent = '▶ Lihat Langkah';
+  box.classList.add('show');
+}
+
+function toggleSteps(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+  el.previousElementSibling.textContent = el.classList.contains('open')
+    ? '▼ Sembunyikan'
+    : '▶ Lihat Langkah';
+}
+

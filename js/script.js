@@ -313,3 +313,5 @@ function useHistory(i) {
   updateArithDisplay();
 }
 
+// ── INIT ──────────────────────────────────────────────────────────────────
+updateArithDisplay();

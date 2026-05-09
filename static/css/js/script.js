@@ -51,3 +51,29 @@ function updateArithDisplay() {
   }
   document.getElementById('arith-expr').textContent = s.expr;
 }
+
+function arithInput(ch) {
+  if (s.waitingForOperand2) {
+    s.display = ch === '.' ? '0.' : ch;
+    s.waitingForOperand2 = false;
+  } else {
+    if (ch === '.' && s.display.includes('.')) return;
+    s.display = (s.display === '0' && ch !== '.') ? ch : s.display + ch;
+  }
+  updateArithDisplay();
+}
+
+function arithOp(op) {
+  const current = parseFloat(s.display);
+  if (s.operator && !s.waitingForOperand2) {
+    calculate(current);
+  } else {
+    s.operand1 = current;
+  }
+  const opSymbols = { '+': '+', '-': '−', '*': '×', '/': '÷', '**': 'xʸ', '//': '÷₊' };
+  s.expr = `${s.operand1} ${opSymbols[op] || op}`;
+  s.operator = op;
+  s.waitingForOperand2 = true;
+  document.getElementById('arith-preview').textContent = '';
+  updateArithDisplay();
+}

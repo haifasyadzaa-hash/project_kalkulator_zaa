@@ -269,3 +269,47 @@ function toggleSteps(id) {
     : '▶ Lihat Langkah';
 }
 
+// ── HISTORY ───────────────────────────────────────────────────────────────
+function addHistory(formula, result, category) {
+  history.unshift({
+    formula,
+    result,
+    category,
+    time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+  });
+  if (history.length > 50) history.pop();
+  localStorage.setItem('calc-history', JSON.stringify(history));
+}
+
+function renderHistory() {
+  const container = document.getElementById('history-items');
+  if (!history.length) {
+    container.innerHTML = '<div class="empty-history">Belum ada riwayat 🌸</div>';
+    return;
+  }
+  container.innerHTML = history.map((h, i) => `
+    <div class="history-item" onclick="useHistory(${i})">
+      <div class="hist-formula">${h.formula}</div>
+      <div class="hist-result">= ${h.result}</div>
+      <div class="hist-time">${h.category} · ${h.time}</div>
+    </div>
+  `).join('');
+}
+
+function clearHistory() {
+  history = [];
+  localStorage.removeItem('calc-history');
+  renderHistory();
+}
+
+function useHistory(i) {
+  const h = history[i];
+  // Pindah ke tab Aritmatika dan tempelkan hasilnya
+  document.querySelectorAll('.tab-btn')[0].click();
+  s.display = h.result.toString().replace(/,/g, '');
+  s.operator = null;
+  s.waitingForOperand2 = false;
+  s.expr = h.formula;
+  updateArithDisplay();
+}
+

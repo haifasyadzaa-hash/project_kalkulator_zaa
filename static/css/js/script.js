@@ -77,3 +77,81 @@ function arithOp(op) {
   document.getElementById('arith-preview').textContent = '';
   updateArithDisplay();
 }
+
+async function calculate(b) {
+  const op = s.operator;
+  const a = s.operand1;
+  if (!op) return;
+  try {
+    const res = await fetch('/api/arithmetic', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ a, b, op })
+    });
+    const data = await res.json();
+    if (data.error) {
+      s.display = 'Error';
+      updateArithDisplay();
+      return;
+    }
+    const val = data.result;
+    const display = Number.isInteger(val)
+      ? String(val)
+      : parseFloat(val.toFixed(10)).toString();
+    s.display = display;
+    s.operand1 = val;
+    s.lastVal = b;
+    addHistory(data.formula, display, 'Aritmatika');
+    document.getElementById('arith-preview').textContent = '= ' + display;
+    updateArithDisplay();
+    return data;
+  } catch (e) {
+    s.display = 'Error';
+    updateArithDisplay();
+  }
+}
+
+async function arithEquals() {
+  const b = (s.lastOp === s.operator && s.waitingForOperand2)
+    ? s.lastVal
+    : parseFloat(s.display);
+  s.lastOp = s.operator;
+  await calculate(b);
+  s.expr = '';
+  s.operator = null;
+  s.waitingForOperand2 = false;
+  updateArithDisplay();
+  // Animasi pop pada hasil
+  const el = document.getElementById('arith-display');
+  el.classList.add('pop');
+  setTimeout(() => el.classList.remove('pop'), 200);
+}
+
+async function arithSpecial(action) {
+  const val = parseFloat(s.display);
+  if (action === 'clear') {
+    s.display = '0';
+    s.expr = '';
+    s.operand1 = null;
+    s.operator = null;
+    s.waitingForOperand2 = false;
+    document.getElementById('arith-preview').textContent = '';
+  } else if (action === 'sign') {
+    s.display = String(-val);
+  } else if (action === 'back') {
+    s.display = s.display.length > 1 ? s.display.slice(0, -1) : '0';
+  } else if (action === 'sqrt') {
+    s.operand1 = val;
+    s.operator = 'sqrt';
+    await calculate(0);
+    s.operator = null;
+    s.waitingForOperand2 = false;
+    s.expr = '';
+  } else if (action === '%') {
+    s.expr = `${s.display} mod`;
+    s.operand1 = val;
+    s.operator = '%';
+    s.waitingForOperand2 = true;
+  }
+  updateArithDisplay();
+}

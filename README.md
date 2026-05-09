@@ -1,4 +1,4 @@
-# project_kalkulator
+# Kalkulator Canggih
 
 Aplikasi web kalkulator berbasis Python dan Flask dengan tampilan seperti kalkulator smartphone. Mendukung operasi aritmatika, logika bitwise, dan transformasi bilangan, dilengkapi dark mode dan riwayat perhitungan.
 

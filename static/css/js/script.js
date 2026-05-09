@@ -155,3 +155,39 @@ async function arithSpecial(action) {
   }
   updateArithDisplay();
 }
+
+// ── LOGIC ─────────────────────────────────────────────────────────────────
+function selectLogic(op, btn) {
+  selectedLogicOp = op;
+  document.querySelectorAll('.logic-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  // Sembunyikan input B jika operator NOT (hanya butuh 1 nilai)
+  const rowB = document.getElementById('logic-b').closest('.form-row');
+  rowB.style.opacity = (op === 'NOT') ? '0.4' : '1';
+  rowB.style.pointerEvents = (op === 'NOT') ? 'none' : 'auto';
+}
+
+async function calcLogic() {
+  const a = document.getElementById('logic-a').value;
+  const b = document.getElementById('logic-b').value;
+  const err = document.getElementById('logic-error');
+  err.classList.remove('show');
+  try {
+    const res = await fetch('/api/logic', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ a, b, op: selectedLogicOp })
+    });
+    const data = await res.json();
+    if (data.error) {
+      err.textContent = data.error;
+      err.classList.add('show');
+      return;
+    }
+    showResult('logic', data);
+    addHistory(data.formula, data.result, 'Logika');
+  } catch (e) {
+    err.textContent = 'Terjadi kesalahan';
+    err.classList.add('show');
+  }
+}

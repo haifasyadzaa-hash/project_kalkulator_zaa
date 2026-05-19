@@ -3,295 +3,495 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kalkulator Canggih</title>
-
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
-
-  <!-- CSS External -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  <title>Autumn FallCal — Kalkulator Canggih</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Kaisei+Decol:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
 
-<div class="phone">
+<div class="sakura-layer" id="sakuraLayer"></div>
 
-  <!-- ── TOP BAR ── -->
-  <div class="top-bar">
-    <h1>🌸 Kalkulator</h1>
-    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode"></div>
+<!-- ===== NAVBAR ===== -->
+<nav class="main-nav">
+  <div class="nav-container">
+    <div class="brand">
+      <span class="brand-kana">Autumn</span>
+      <span class="brand-sep">·</span>
+      <span class="brand-latin">FallCal</span>
+      <span class="brand-tag">Pengantar Pemrograman</span>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-theme" id="themeToggle"><i class="bi bi-moon-stars-fill" id="themeIcon"></i></button>
+      <button class="btn-history" data-bs-toggle="offcanvas" data-bs-target="#historyDrawer">
+        <i class="bi bi-clock-history"></i><span>Riwayat</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== HISTORY DRAWER ===== -->
+<div class="offcanvas offcanvas-end" id="historyDrawer">
+  <div class="offcanvas-header">
+    <div class="drawer-title">
+      <i class="bi bi-clock-history me-2"></i>
+      <span class="kana-badge">History</span>
+      <span>— Riwayat Perhitungan</span>
+    </div>
+    <button class="btn-x" data-bs-dismiss="offcanvas"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <div class="offcanvas-body" id="historyBody">
+    <div class="empty-hist"><div class="empty-kana">Empty</div><p>Belum ada riwayat.</p></div>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn-clear-hist" onclick="clearHistory()">
+      <i class="bi bi-trash3 me-1"></i>Hapus Semua
+    </button>
+  </div>
+</div>
+
+<!-- ===== HERO ===== -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-pill">
+      <span class="pill-kana">Tugas 1</span>
+      <span class="pill-dot">·</span>
+      <span>Pengantar Pemrograman · Semester 2 TA 2025/2026</span>
+    </div>
+    <h1 class="hero-title">
+      <span class="title-kana">Edinburgh · Autumn</span>
+      <br>
+      <span class="title-latin">Autumn — <em>FallCal</em></span>
+    </h1>
+    <p class="hero-sub">Aritmatika · Logika · Konversi</p>
+  </div>
+  <div class="deco-circle deco-c1"></div>
+  <div class="deco-circle deco-c2"></div>
+  <div class="deco-float df1">+</div>
+  <div class="deco-float df2">x</div>
+  <div class="deco-float df3">√</div>
+  <div class="deco-float df4">∑</div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<div class="main-wrap">
+
+  <!-- TAB STRIP -->
+  <div class="tab-strip">
+    <button class="tab-btn active" onclick="switchTab(this,'standar')">
+      <i class="bi bi-grid-3x3-gap"></i>
+      <span class="tb-kana">Standar</span>
+      <span class="tb-en">Kalkulator</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab(this,'aritmatika')">
+      <i class="bi bi-calculator"></i>
+      <span class="tb-kana">Aritmatika</span>
+      <span class="tb-en">Lanjutan</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab(this,'logika')">
+      <i class="bi bi-cpu"></i>
+      <span class="tb-kana">Logika</span>
+      <span class="tb-en">Bitwise</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab(this,'transformasi')">
+      <i class="bi bi-arrow-left-right"></i>
+      <span class="tb-kana">Konversi</span>
+      <span class="tb-en">Transformasi</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab(this,'bonus')">
+      <i class="bi bi-stars"></i>
+      <span class="tb-kana">Fitur</span>
+      <span class="tb-en">Lainnya</span>
+    </button>
   </div>
 
-  <!-- ── TABS ── -->
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('arith', this)">Aritmatika</button>
-    <button class="tab-btn" onclick="switchTab('logic', this)">Logika</button>
-    <button class="tab-btn" onclick="switchTab('transform', this)">Transformasi</button>
-    <button class="tab-btn" onclick="switchTab('history', this)">Riwayat</button>
+  <!-- ============ STANDAR ============ -->
+  <div class="tab-pane active" id="tab-standar">
+    <div class="std-layout">
+      <div class="float-card std-card">
+        <div class="fc-header">
+          <div class="fc-kana">Standard Calculator</div>
+          <div class="fc-en">Kalkulator Standar</div>
+        </div>
+        <div class="fc-body std-body">
+          <div class="calc-screen std-screen" id="std-screen">
+            <div class="cs-sub" id="std-sub"></div>
+            <div class="cs-expr" id="std-expr">0</div>
+          </div>
+          <div class="numpad std-numpad">
+            <div class="std-grid">
+              <button class="nk nk-fn" onclick="stdInput('percent')">%</button>
+              <button class="nk nk-fn" onclick="stdInput('sqrt')">√</button>
+              <button class="nk nk-fn" onclick="stdInput('square')">x²</button>
+              <button class="nk nk-fn" onclick="stdInput('inverse')">1/x</button>
+              <button class="nk nk-clear" onclick="stdClearAll()">AC</button>
+              <button class="nk nk-fn" onclick="stdClearEntry()">CE</button>
+              <button class="nk nk-del" onclick="stdDelete()">⌫</button>
+              <button class="nk nk-op2" onclick="stdOp('÷')">÷</button>
+              <button class="nk" onclick="stdNum('7')">7</button>
+              <button class="nk" onclick="stdNum('8')">8</button>
+              <button class="nk" onclick="stdNum('9')">9</button>
+              <button class="nk nk-op2" onclick="stdOp('×')">×</button>
+              <button class="nk" onclick="stdNum('4')">4</button>
+              <button class="nk" onclick="stdNum('5')">5</button>
+              <button class="nk" onclick="stdNum('6')">6</button>
+              <button class="nk nk-op2" onclick="stdOp('－')">−</button>
+              <button class="nk" onclick="stdNum('1')">1</button>
+              <button class="nk" onclick="stdNum('2')">2</button>
+              <button class="nk" onclick="stdNum('3')">3</button>
+              <button class="nk nk-op2" onclick="stdOp('＋')">+</button>
+              <button class="nk nk-neg" onclick="stdToggleSign()">±</button>
+              <button class="nk" onclick="stdNum('0')">0</button>
+              <button class="nk nk-op" onclick="stdNum('.')">.</button>
+              <button class="nk nk-equals" onclick="stdEquals()">=</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="std-history-col">
+        <div class="res-card std-hist-card">
+          <div class="rc-number" style="font-size:1rem;padding:14px 18px 10px;">
+            <span style="font-family:var(--jp);font-size:0.7rem;color:var(--muted);display:block;margin-bottom:4px;">History — Riwayat</span>
+            <span id="std-hist-count" style="color:var(--muted);font-size:0.85rem;">Belum ada perhitungan</span>
+          </div>
+          <div id="std-hist-list" style="max-height:420px;overflow-y:auto;"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="panels">
-
-    <!-- ════════════════════════════════════════
-         PANEL 1 — ARITMATIKA
-    ════════════════════════════════════════ -->
-    <div id="panel-arith" class="panel active" style="flex-direction:column;">
-
-      <!-- Display Kalkulator -->
-      <div class="display">
-        <div class="expr" id="arith-expr"></div>
-        <div class="main-display" id="arith-display">0</div>
-        <div class="result-preview" id="arith-preview"></div>
-      </div>
-
-      <!-- Grid Tombol -->
-      <div class="btn-grid">
-        <!-- Baris 1: Fungsi Khusus -->
-        <button class="btn btn-special" onclick="arithSpecial('clear')">C</button>
-        <button class="btn btn-special" onclick="arithSpecial('sign')">+/−</button>
-        <button class="btn btn-special" onclick="arithSpecial('%')">mod</button>
-        <button class="btn btn-op"      onclick="arithOp('//')">÷₊</button>
-
-        <!-- Baris 2: Fungsi Lanjutan -->
-        <button class="btn btn-special" onclick="arithSpecial('sqrt')">√</button>
-        <button class="btn btn-special" onclick="arithOp('**')">xʸ</button>
-        <button class="btn btn-special" onclick="arithSpecial('back')">⌫</button>
-        <button class="btn btn-op"      onclick="arithOp('/')">÷</button>
-
-        <!-- Baris 3 -->
-        <button class="btn btn-num" onclick="arithInput('7')">7</button>
-        <button class="btn btn-num" onclick="arithInput('8')">8</button>
-        <button class="btn btn-num" onclick="arithInput('9')">9</button>
-        <button class="btn btn-op"  onclick="arithOp('*')">×</button>
-
-        <!-- Baris 4 -->
-        <button class="btn btn-num" onclick="arithInput('4')">4</button>
-        <button class="btn btn-num" onclick="arithInput('5')">5</button>
-        <button class="btn btn-num" onclick="arithInput('6')">6</button>
-        <button class="btn btn-op"  onclick="arithOp('-')">−</button>
-
-        <!-- Baris 5 -->
-        <button class="btn btn-num" onclick="arithInput('1')">1</button>
-        <button class="btn btn-num" onclick="arithInput('2')">2</button>
-        <button class="btn btn-num" onclick="arithInput('3')">3</button>
-        <button class="btn btn-op"  onclick="arithOp('+')">+</button>
-
-        <!-- Baris 6 -->
-        <button class="btn btn-num btn-zero" onclick="arithInput('0')">0</button>
-        <button class="btn btn-num" onclick="arithInput('.')">.</button>
-        <button class="btn btn-eq"  onclick="arithEquals()">=</button>
-      </div>
-
-    </div><!-- /panel-arith -->
-
-
-    <!-- ════════════════════════════════════════
-         PANEL 2 — LOGIKA
-    ════════════════════════════════════════ -->
-    <div id="panel-logic" class="panel" style="flex-direction:column;">
-      <div class="form-panel">
-
-        <!-- Input Nilai -->
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nilai A</label>
-            <input type="number" id="logic-a" placeholder="0" value="0"/>
-          </div>
-          <div class="form-group">
-            <label>Nilai B</label>
-            <input type="number" id="logic-b" placeholder="0" value="0"/>
-          </div>
+  <!-- ============ ARITMATIKA ============ -->
+  <div class="tab-pane" id="tab-aritmatika">
+    <div class="two-col">
+      <div class="float-card">
+        <div class="fc-header">
+          <div class="fc-kana">Advanced Operations</div>
+          <div class="fc-en">Operasi Aritmatika</div>
         </div>
-
-        <!-- Pilih Operator Logika -->
-        <div class="form-group">
-          <label>Pilih Operator</label>
-          <div class="logic-btns">
-            <button class="logic-btn selected" onclick="selectLogic('AND',  this)">AND</button>
-            <button class="logic-btn"          onclick="selectLogic('OR',   this)">OR</button>
-            <button class="logic-btn"          onclick="selectLogic('NOT',  this)">NOT</button>
-            <button class="logic-btn"          onclick="selectLogic('XOR',  this)">XOR</button>
-            <button class="logic-btn"          onclick="selectLogic('NAND', this)">NAND</button>
-            <button class="logic-btn"          onclick="selectLogic('NOR',  this)">NOR</button>
+        <div class="fc-body">
+          <div class="calc-screen" id="arith-screen">
+            <div class="cs-expr" id="arith-expr">0</div>
+            <div class="cs-sub" id="arith-sub"></div>
           </div>
-        </div>
-
-        <button class="calc-btn" onclick="calcLogic()">Hitung</button>
-        <div class="error-msg" id="logic-error"></div>
-
-        <!-- Hasil -->
-        <div class="result-box" id="logic-result">
-          <div class="result-val"     id="logic-rval"></div>
-          <div class="result-formula" id="logic-rformula"></div>
-          <span class="steps-toggle" onclick="toggleSteps('logic-steps')">▶ Lihat Langkah</span>
-          <div class="steps-list" id="logic-steps"></div>
-        </div>
-
-      </div>
-    </div><!-- /panel-logic -->
-
-
-    <!-- ════════════════════════════════════════
-         PANEL 3 — TRANSFORMASI
-    ════════════════════════════════════════ -->
-    <div id="panel-transform" class="panel" style="flex-direction:column;">
-      <div class="form-panel">
-
-        <!-- Sub-Tabs -->
-        <div class="sub-tabs">
-          <button class="sub-tab active" onclick="switchTransform('base',      this)">Basis</button>
-          <button class="sub-tab"        onclick="switchTransform('temp',      this)">Suhu</button>
-          <button class="sub-tab"        onclick="switchTransform('currency',  this)">Mata Uang</button>
-          <button class="sub-tab"        onclick="switchTransform('factorial', this)">Faktorial</button>
-          <button class="sub-tab"        onclick="switchTransform('fibonacci', this)">Fibonacci</button>
-        </div>
-
-        <!-- Konversi Basis Bilangan -->
-        <div id="tf-base">
-          <div class="form-group" style="margin-bottom:8px">
-            <label>Angka Input</label>
-            <input type="text" id="base-num" placeholder="Masukkan angka"/>
+          <div class="field-lbl mt-2">Pilih Operasi</div>
+          <div class="op-grid">
+            <button class="op-key active" onclick="setArithOp(this,'tambah')">+</button>
+            <button class="op-key" onclick="setArithOp(this,'kurang')">−</button>
+            <button class="op-key" onclick="setArithOp(this,'kali')">×</button>
+            <button class="op-key" onclick="setArithOp(this,'bagi')">÷</button>
+            <button class="op-key" onclick="setArithOp(this,'pangkat')">xⁿ</button>
+            <button class="op-key" onclick="setArithOp(this,'akar')">√x</button>
+            <button class="op-key" onclick="setArithOp(this,'modulus')">mod</button>
+            <button class="op-key" onclick="setArithOp(this,'floor')">//</button>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Dari</label>
-              <select id="base-from">
-                <option value="DEC">Desimal</option>
-                <option value="BIN">Biner</option>
-                <option value="OCT">Oktal</option>
-                <option value="HEX">Heksadesimal</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Ke</label>
-              <select id="base-to">
-                <option value="BIN">Biner</option>
-                <option value="DEC">Desimal</option>
-                <option value="OCT">Oktal</option>
-                <option value="HEX">Heksadesimal</option>
-              </select>
+          <input type="hidden" id="arith-a"/>
+          <input type="hidden" id="arith-b"/>
+          <div class="numpad">
+            <div class="numpad-grid">
+              <button class="nk" onclick="numInput('7')">7</button>
+              <button class="nk" onclick="numInput('8')">8</button>
+              <button class="nk" onclick="numInput('9')">9</button>
+              <button class="nk nk-del" onclick="numDelete()">⌫</button>
+              <button class="nk" onclick="numInput('4')">4</button>
+              <button class="nk" onclick="numInput('5')">5</button>
+              <button class="nk" onclick="numInput('6')">6</button>
+              <button class="nk nk-clear" onclick="numClear()">C</button>
+              <button class="nk" onclick="numInput('1')">1</button>
+              <button class="nk" onclick="numInput('2')">2</button>
+              <button class="nk" onclick="numInput('3')">3</button>
+              <button class="nk nk-neg" onclick="numToggleSign()">±</button>
+              <button class="nk nk-zero" onclick="numInput('0')">0</button>
+              <button class="nk nk-op" onclick="numInput('.')">.</button>
+              <button class="nk nk-keisan" style="grid-column:span 2" onclick="hitungAritmatika()">
+                <i class="bi bi-lightning-charge-fill me-1"></i>Hitung
+              </button>
             </div>
           </div>
-        </div>
-
-        <!-- Konversi Suhu -->
-        <div id="tf-temp" style="display:none">
-          <div class="form-group" style="margin-bottom:8px">
-            <label>Nilai Suhu</label>
-            <input type="number" id="temp-val" placeholder="0"/>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Dari</label>
-              <select id="temp-from">
-                <option value="C">Celsius (°C)</option>
-                <option value="F">Fahrenheit (°F)</option>
-                <option value="K">Kelvin (K)</option>
-                <option value="R">Reamur (°Ré)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Ke</label>
-              <select id="temp-to">
-                <option value="F">Fahrenheit (°F)</option>
-                <option value="C">Celsius (°C)</option>
-                <option value="K">Kelvin (K)</option>
-                <option value="R">Reamur (°Ré)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Konversi Mata Uang -->
-        <div id="tf-currency" style="display:none">
-          <div class="form-group" style="margin-bottom:8px">
-            <label>Jumlah</label>
-            <input type="number" id="curr-amount" placeholder="0" value="100000"/>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Dari</label>
-              <select id="curr-from">
-                <option value="IDR">IDR - Rupiah</option>
-                <option value="USD">USD - Dollar</option>
-                <option value="EUR">EUR - Euro</option>
-                <option value="SGD">SGD - S.Dollar</option>
-                <option value="JPY">JPY - Yen</option>
-                <option value="GBP">GBP - Pound</option>
-                <option value="MYR">MYR - Ringgit</option>
-                <option value="AUD">AUD - A.Dollar</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Ke</label>
-              <select id="curr-to">
-                <option value="USD">USD - Dollar</option>
-                <option value="IDR">IDR - Rupiah</option>
-                <option value="EUR">EUR - Euro</option>
-                <option value="SGD">SGD - S.Dollar</option>
-                <option value="JPY">JPY - Yen</option>
-                <option value="GBP">GBP - Pound</option>
-                <option value="MYR">MYR - Ringgit</option>
-                <option value="AUD">AUD - A.Dollar</option>
-              </select>
-            </div>
-          </div>
-          <p style="font-size:10px; color:var(--text3); text-align:center; margin-top:4px;">
-            *Rate statis (kurs referensi)
-          </p>
-        </div>
-
-        <!-- Faktorial -->
-        <div id="tf-factorial" style="display:none">
-          <div class="form-group">
-            <label>n (0 – 20)</label>
-            <input type="number" id="fact-n" placeholder="5" min="0" max="20" value="5"/>
-          </div>
-        </div>
-
-        <!-- Fibonacci -->
-        <div id="tf-fibonacci" style="display:none">
-          <div class="form-group">
-            <label>Jumlah Suku (1 – 30)</label>
-            <input type="number" id="fib-n" placeholder="10" min="1" max="30" value="10"/>
-          </div>
-        </div>
-
-        <button class="calc-btn" onclick="calcTransform()">Hitung</button>
-        <div class="error-msg" id="tf-error"></div>
-
-        <!-- Hasil -->
-        <div class="result-box" id="tf-result">
-          <div class="result-val"     id="tf-rval"></div>
-          <div class="result-formula" id="tf-rformula"></div>
-          <span class="steps-toggle" onclick="toggleSteps('tf-steps')">▶ Lihat Langkah</span>
-          <div class="steps-list" id="tf-steps"></div>
-        </div>
-
-      </div>
-    </div><!-- /panel-transform -->
-
-
-    <!-- ════════════════════════════════════════
-         PANEL 4 — RIWAYAT
-    ════════════════════════════════════════ -->
-    <div id="panel-history" class="panel" style="flex-direction:column;">
-      <div class="history-panel">
-        <div class="history-header">
-          <span>Riwayat Perhitungan</span>
-          <button class="clear-btn" onclick="clearHistory()">Hapus Semua</button>
-        </div>
-        <div id="history-items">
-          <div class="empty-history">Belum ada riwayat 🌸</div>
         </div>
       </div>
-    </div><!-- /panel-history -->
+      <div class="result-col">
+        <div class="res-card" id="rc-arith">
+          <div class="rc-empty" id="rce-arith"><div class="empty-mon">—</div><p>Masukkan nilai dan pilih operasi</p></div>
+          <div class="rc-body d-none" id="rcb-arith">
+            <div class="rc-number" id="rn-arith"></div>
+            <div class="rc-block">
+              <div class="rc-lbl"><i class="bi bi-function me-1"></i>Rumus</div>
+              <div class="rc-formula" id="rf-arith"></div>
+            </div>
+            <div class="rc-block">
+              <div class="rc-lbl"><i class="bi bi-list-ol me-1"></i>Langkah-langkah</div>
+              <div class="rc-steps" id="rs-arith"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  </div><!-- /panels -->
-</div><!-- /phone -->
+  <!-- ============ LOGIKA ============ -->
+  <div class="tab-pane" id="tab-logika">
+    <div class="two-col">
+      <div class="float-card">
+        <div class="fc-header">
+          <div class="fc-kana">Bitwise Operations</div>
+          <div class="fc-en">Operator Logika (Bitwise)</div>
+        </div>
+        <div class="fc-body">
+          <div class="calc-screen" id="logic-screen">
+            <div class="cs-expr" id="logic-expr">0</div>
+            <div class="cs-sub" id="logic-sub"></div>
+          </div>
+          <div class="field-lbl mt-2">Pilih Operasi</div>
+          <div class="op-grid op-6">
+            <button class="op-key active" onclick="setLogicOp(this,'AND')">AND</button>
+            <button class="op-key" onclick="setLogicOp(this,'OR')">OR</button>
+            <button class="op-key" onclick="setLogicOp(this,'NOT')">NOT</button>
+            <button class="op-key" onclick="setLogicOp(this,'XOR')">XOR</button>
+            <button class="op-key" onclick="setLogicOp(this,'NAND')">NAND</button>
+            <button class="op-key" onclick="setLogicOp(this,'NOR')">NOR</button>
+          </div>
+          <input type="hidden" id="logic-a"/>
+          <input type="hidden" id="logic-b"/>
+          <div class="numpad">
+            <div class="numpad-grid">
+              <button class="nk" onclick="numInput('7')">7</button>
+              <button class="nk" onclick="numInput('8')">8</button>
+              <button class="nk" onclick="numInput('9')">9</button>
+              <button class="nk nk-del" onclick="numDelete()">⌫</button>
+              <button class="nk" onclick="numInput('4')">4</button>
+              <button class="nk" onclick="numInput('5')">5</button>
+              <button class="nk" onclick="numInput('6')">6</button>
+              <button class="nk nk-clear" onclick="numClear()">C</button>
+              <button class="nk" onclick="numInput('1')">1</button>
+              <button class="nk" onclick="numInput('2')">2</button>
+              <button class="nk" onclick="numInput('3')">3</button>
+              <button class="nk nk-neg" onclick="numToggleSign()">±</button>
+              <button class="nk nk-zero" onclick="numInput('0')">0</button>
+              <button class="nk nk-op" onclick="numInput('.')">.</button>
+              <button class="nk nk-keisan" style="grid-column:span 2" onclick="hitungLogika()">
+                <i class="bi bi-lightning-charge-fill me-1"></i>Hitung
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="result-col">
+        <div class="res-card" id="rc-logic">
+          <div class="rc-empty" id="rce-logic"><div class="empty-mon">—</div><p>Masukkan nilai integer</p></div>
+          <div class="rc-body d-none" id="rcb-logic">
+            <div class="rc-number" id="rn-logic"></div>
+            <div class="rc-block"><div class="rc-lbl"><i class="bi bi-function me-1"></i>Rumus</div><div class="rc-formula" id="rf-logic"></div></div>
+            <div class="rc-block"><div class="rc-lbl"><i class="bi bi-list-ol me-1"></i>Langkah-langkah</div><div class="rc-steps" id="rs-logic"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<!-- JavaScript External -->
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <!-- ============ TRANSFORMASI ============ -->
+  <div class="tab-pane" id="tab-transformasi">
+    <div class="sub-strip">
+      <button class="sub-btn active" onclick="switchSub(this,'basis')"><span class="sb-kana">Basis</span><span class="sb-en">Bilangan</span></button>
+      <button class="sub-btn" onclick="switchSub(this,'suhu')"><span class="sb-kana">Suhu</span><span class="sb-en">Temperatur</span></button>
+      <button class="sub-btn" onclick="switchSub(this,'uang')"><span class="sb-kana">Mata Uang</span><span class="sb-en">Kurs</span></button>
+    </div>
 
+    <!-- Basis -->
+    <div class="sub-pane active" id="sub-basis">
+      <div class="two-col">
+        <div class="float-card">
+          <div class="fc-header"><div class="fc-kana">Number Base Converter</div><div class="fc-en">Konversi Basis Bilangan</div></div>
+          <div class="fc-body">
+            <div class="input-grp mb-3">
+              <label class="field-lbl">Nilai</label>
+              <input type="text" class="jp-field" id="basis-nilai" placeholder="Masukkan nilai..."/>
+            </div>
+            <div class="two-input">
+              <div class="input-grp">
+                <label class="field-lbl">Dari Basis</label>
+                <select class="jp-field" id="basis-dari">
+                  <option value="decimal">Desimal (10)</option>
+                  <option value="binary">Biner (2)</option>
+                  <option value="octal">Oktal (8)</option>
+                  <option value="hexadecimal">Hexadecimal (16)</option>
+                </select>
+              </div>
+              <div class="input-grp">
+                <label class="field-lbl">Ke Basis</label>
+                <select class="jp-field" id="basis-ke">
+                  <option value="binary">Biner (2)</option>
+                  <option value="decimal">Desimal (10)</option>
+                  <option value="octal">Oktal (8)</option>
+                  <option value="hexadecimal">Hexadecimal (16)</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn-keisan" onclick="konversiBasis()"><i class="bi bi-arrow-left-right"></i><span class="bk-kana">Konversi</span></button>
+          </div>
+        </div>
+        <div class="result-col">
+          <div class="res-card" id="rc-basis">
+            <div class="rc-empty" id="rce-basis"><div class="empty-mon">—</div><p>Masukkan nilai dan pilih basis</p></div>
+            <div class="rc-body d-none" id="rcb-basis">
+              <div class="rc-number" id="rn-basis"></div>
+              <div class="basis-grid" id="rg-basis"></div>
+              <div class="rc-block"><div class="rc-lbl"><i class="bi bi-list-ol me-1"></i>Langkah-langkah</div><div class="rc-steps" id="rs-basis"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suhu -->
+    <div class="sub-pane" id="sub-suhu">
+      <div class="two-col">
+        <div class="float-card">
+          <div class="fc-header"><div class="fc-kana">Temperature Converter</div><div class="fc-en">Konversi Suhu</div></div>
+          <div class="fc-body">
+            <div class="two-input">
+              <div class="input-grp">
+                <label class="field-lbl">Nilai Suhu</label>
+                <input type="number" class="jp-field" id="suhu-nilai" placeholder="Masukkan suhu..."/>
+              </div>
+              <div class="input-grp">
+                <label class="field-lbl">Satuan</label>
+                <select class="jp-field" id="suhu-dari">
+                  <option value="celsius">Celsius °C</option>
+                  <option value="fahrenheit">Fahrenheit °F</option>
+                  <option value="kelvin">Kelvin K</option>
+                  <option value="reamur">Reaumur °Re</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn-keisan" onclick="konversiSuhu()"><i class="bi bi-arrow-left-right"></i><span class="bk-kana">Konversi Semua</span></button>
+          </div>
+        </div>
+        <div class="result-col">
+          <div class="res-card" id="rc-suhu">
+            <div class="rc-empty" id="rce-suhu"><div class="empty-mon">—</div><p>Masukkan nilai suhu</p></div>
+            <div class="rc-body d-none" id="rcb-suhu">
+              <div class="suhu-grid" id="rg-suhu"></div>
+              <div class="rc-block"><div class="rc-lbl"><i class="bi bi-list-ol me-1"></i>Langkah-langkah</div><div class="rc-steps" id="rs-suhu"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Uang -->
+    <div class="sub-pane" id="sub-uang">
+      <div class="two-col">
+        <div class="float-card">
+          <div class="fc-header"><div class="fc-kana">Currency Converter</div><div class="fc-en">Konversi Mata Uang</div></div>
+          <div class="fc-body">
+            <div class="info-note"><i class="bi bi-info-circle me-1"></i>Rate statis — Mei 2025</div>
+            <div class="input-grp mb-3">
+              <label class="field-lbl">Jumlah</label>
+              <input type="number" class="jp-field" id="uang-nilai" placeholder="Masukkan jumlah..."/>
+            </div>
+            <div class="two-input">
+              <div class="input-grp">
+                <label class="field-lbl">Dari</label>
+                <select class="jp-field" id="uang-dari">
+                  <option value="IDR">IDR — Rupiah</option>
+                  <option value="USD">USD — Dollar AS</option>
+                  <option value="EUR">EUR — Euro</option>
+                  <option value="SGD">SGD — Dollar Singapura</option>
+                  <option value="JPY">JPY — Yen Jepang</option>
+                  <option value="MYR">MYR — Ringgit</option>
+                  <option value="GBP">GBP — Pound Sterling</option>
+                  <option value="AUD">AUD — Dollar Australia</option>
+                  <option value="CNY">CNY — Yuan China</option>
+                  <option value="SAR">SAR — Riyal Saudi</option>
+                </select>
+              </div>
+              <div class="input-grp">
+                <label class="field-lbl">Ke</label>
+                <select class="jp-field" id="uang-ke">
+                  <option value="USD">USD — Dollar AS</option>
+                  <option value="IDR">IDR — Rupiah</option>
+                  <option value="EUR">EUR — Euro</option>
+                  <option value="SGD">SGD — Dollar Singapura</option>
+                  <option value="JPY">JPY — Yen Jepang</option>
+                  <option value="MYR">MYR — Ringgit</option>
+                  <option value="GBP">GBP — Pound Sterling</option>
+                  <option value="AUD">AUD — Dollar Australia</option>
+                  <option value="CNY">CNY — Yuan China</option>
+                  <option value="SAR">SAR — Riyal Saudi</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn-keisan" onclick="konversiUang()"><i class="bi bi-arrow-left-right"></i><span class="bk-kana">Konversi</span></button>
+          </div>
+        </div>
+        <div class="result-col">
+          <div class="res-card" id="rc-uang">
+            <div class="rc-empty" id="rce-uang"><div class="empty-mon">—</div><p>Masukkan jumlah dan mata uang</p></div>
+            <div class="rc-body d-none" id="rcb-uang">
+              <div class="rc-number" id="rn-uang"></div>
+              <div class="rc-block"><div class="rc-lbl"><i class="bi bi-list-ol me-1"></i>Langkah-langkah</div><div class="rc-steps" id="rs-uang"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ BONUS ============ -->
+  <div class="tab-pane" id="tab-bonus">
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="float-card">
+          <div class="fc-header"><div class="fc-kana">Factorial</div><div class="fc-en">Faktorial (n!)</div></div>
+          <div class="fc-body">
+            <div class="input-grp mb-3">
+              <label class="field-lbl">Nilai n (0–20)</label>
+              <input type="number" class="jp-field" id="fakt-n" min="0" max="20" placeholder="Contoh: 10"/>
+            </div>
+            <button class="btn-keisan" onclick="hitungFaktorial()"><i class="bi bi-lightning-charge-fill"></i><span class="bk-kana">Hitung n!</span></button>
+            <div class="res-inline d-none" id="ri-fakt">
+              <div class="rc-number" id="rn-fakt"></div>
+              <div class="rc-block"><div class="rc-lbl">Rumus</div><div class="rc-formula" id="rf-fakt"></div></div>
+              <div class="rc-block"><div class="rc-lbl">Langkah-langkah</div><div class="rc-steps" id="rs-fakt"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="float-card">
+          <div class="fc-header"><div class="fc-kana">Fibonacci</div><div class="fc-en">Deret Fibonacci</div></div>
+          <div class="fc-body">
+            <div class="input-grp mb-3">
+              <label class="field-lbl">Nilai n (0–30)</label>
+              <input type="number" class="jp-field" id="fib-n" min="0" max="30" placeholder="Contoh: 10"/>
+            </div>
+            <button class="btn-keisan" onclick="hitungFibonacci()"><i class="bi bi-lightning-charge-fill"></i><span class="bk-kana">Hitung F(n)</span></button>
+            <div class="res-inline d-none" id="ri-fib">
+              <div class="rc-number" id="rn-fib"></div>
+              <div class="rc-block"><div class="rc-lbl">Deret</div><div class="fib-chips" id="rc-fib-deret"></div></div>
+              <div class="rc-block"><div class="rc-lbl">Langkah-langkah</div><div class="rc-steps" id="rs-fib"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <span class="f-kana">Autumn FallCal · Pengantar Pemrograman · 2025</span>
+    <span class="f-sep">·</span>
+    <span class="f-sub">Python Flask + Bootstrap 5</span>
+  </div>
+</footer>
+
+<div class="err-toast d-none" id="errToast"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/main.js"></script>
 </body>
 </html>

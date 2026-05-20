@@ -53,26 +53,7 @@ function switchSub(btn, id) {
 let arithOp = 'tambah';
 let logicOp = 'AND';
 
-function setArithOp(btn, op) {
-  document.querySelectorAll('#tab-aritmatika .op-key').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  arithOp = op;
-  const bGrp = document.getElementById('arith-b-grp');
-  bGrp.style.display = op === 'akar' ? 'none' : 'flex';
-  // if akar, force active to A
-  if (op === 'akar') setActiveInput('arith-a');
-}
-function setLogicOp(btn, op) {
-  document.querySelectorAll('#tab-logika .op-key').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  logicOp = op;
-  const bGrp = document.getElementById('logic-b-grp');
-  bGrp.style.display = op === 'NOT' ? 'none' : 'flex';
-  if (op === 'NOT') setActiveInput('logic-a');
-}
-
 /* ===== NUMPAD SYSTEM — CALCULATOR STATE MACHINE ===== */
-// State: 'a' = entering A, 'b' = entering B
 const calcState = {
   arith: { a: '', b: '', state: 'a' },
   logic: { a: '', b: '', state: 'a' }
@@ -107,7 +88,7 @@ function updateScreen(panel) {
   } else {
     exprEl.textContent = st.b || '0';
     exprEl.classList.add('entering-b');
-    if (op === 'akar') {
+    if (op === 'akar' || op === 'NOT') {
       subEl.textContent = `${opSym}`;
     } else {
       subEl.textContent = `${st.a || '0'} ${opSym}`;
@@ -148,7 +129,6 @@ function numClear() {
   const panel = getCurrentPanel();
   if (!panel) return;
   const st = calcState[panel];
-  // C once clears current field, C again resets all
   if (st[st.state] === '') {
     st.a = ''; st.b = ''; st.state = 'a';
   } else {
@@ -167,7 +147,6 @@ function numToggleSign() {
   updateScreen(panel);
 }
 
-// Called when user picks an operator — auto move to entering B
 function setArithOp(btn, op) {
   document.querySelectorAll('#tab-aritmatika .op-key').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -197,7 +176,6 @@ function setLogicOp(btn, op) {
 }
 
 function switchNumpadTarget() {
-  // manual toggle A↔B (still usable via keyboard Tab)
   const panel = getCurrentPanel();
   if (!panel) return;
   const st = calcState[panel];
@@ -208,12 +186,32 @@ function switchNumpadTarget() {
   updateScreen(panel);
 }
 
-/* ===== PHYSICAL KEYBOARD SUPPORT ===== */
+/* ===== COMBINED KEYBOARD SUPPORT ===== */
 document.addEventListener('keydown', e => {
+  const pane = document.querySelector('.tab-pane.active');
+  if (!pane) return;
+
+  // Standard calculator keyboard
+  if (pane.id === 'tab-standar') {
+    if (e.key >= '0' && e.key <= '9')  { e.preventDefault(); stdNum(e.key); }
+    else if (e.key === '.')             { e.preventDefault(); stdNum('.'); }
+    else if (e.key === '+')             { e.preventDefault(); stdOp('＋'); }
+    else if (e.key === '-')             { e.preventDefault(); stdOp('－'); }
+    else if (e.key === '*')             { e.preventDefault(); stdOp('×'); }
+    else if (e.key === '/')             { e.preventDefault(); stdOp('÷'); }
+    else if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); stdEquals(); }
+    else if (e.key === 'Backspace')     { e.preventDefault(); stdDelete(); }
+    else if (e.key === 'Escape')        { e.preventDefault(); stdClearAll(); }
+    else if (e.key === 'Delete')        { e.preventDefault(); stdClearEntry(); }
+    else if (e.key === '%')             { e.preventDefault(); stdInput('percent'); }
+    return;
+  }
+
+  // Aritmatika / Logika numpad keyboard
   const panel = getCurrentPanel();
   if (!panel) return;
   const tag = document.activeElement.tagName;
-  if (tag === 'INPUT' && !document.activeElement.hidden) return; // don't intercept real inputs
+  if (tag === 'INPUT' && !document.activeElement.hidden) return;
 
   if (e.key >= '0' && e.key <= '9') { e.preventDefault(); numInput(e.key); }
   else if (e.key === '.') { e.preventDefault(); numInput('.'); }
@@ -242,10 +240,9 @@ function showErr(msg) {
   t.classList.remove('d-none');
   setTimeout(() => t.classList.add('d-none'), 3500);
 }
-function loading(btn, v) { v ? btn.classList.add('loading') : btn.classList.remove('loading'); }
+function loading(btn, v) { if (btn) v ? btn.classList.add('loading') : btn.classList.remove('loading'); }
 
 function showResult(ids, data) {
-  // ids: { empty, body, num, rumus, steps, extra }
   document.getElementById(ids.empty).classList.add('d-none');
   document.getElementById(ids.body).classList.remove('d-none');
   if (ids.num)   document.getElementById(ids.num).textContent = data.answer || '';
@@ -269,17 +266,15 @@ async function hitungAritmatika() {
     const d = await apiPost('/api/aritmatika', { operasi: arithOp, a: parseFloat(a), b: arithOp !== 'akar' ? parseFloat(b) : null });
     if (btn) loading(btn, false);
     if (d.error) return showErr(d.error);
-    // show result on screen briefly
     const exprEl = document.getElementById('arith-expr');
     const subEl  = document.getElementById('arith-sub');
     if (exprEl) { exprEl.textContent = d.result; exprEl.classList.remove('entering-b'); }
     if (subEl)  subEl.textContent = d.rumus;
     showResult({ empty:'rce-arith', body:'rcb-arith', num:'rn-arith', rumus:'rf-arith', steps:'rs-arith' },
                { answer: d.result, rumus: d.rumus, langkah: d.langkah });
-    // reset state for next calculation
     calcState.arith = { a: d.result, b: '', state: 'a' };
     loadHistory();
-  } catch { if (btn) loading(btn, false); showErr('Gagal terhubung ke server.'); }
+  } catch(err) { if (btn) loading(btn, false); showErr('Gagal terhubung ke server.'); }
 }
 
 /* ===== LOGIKA ===== */
@@ -302,7 +297,7 @@ async function hitungLogika() {
     showResult({empty:'rce-logic',body:'rcb-logic',num:'rn-logic',rumus:'rf-logic',steps:'rs-logic'},{answer:d.result,rumus:d.rumus,langkah:d.langkah});
     calcState.logic = { a: d.result, b: '', state: 'a' };
     loadHistory();
-  } catch { if (btn) loading(btn,false); showErr('Gagal terhubung ke server.'); }
+  } catch(err) { if (btn) loading(btn,false); showErr('Gagal terhubung ke server.'); }
 }
 
 /* ===== BASIS ===== */
@@ -318,7 +313,6 @@ async function konversiBasis() {
     loading(btn,false);
     if (d.error) return showErr(d.error);
     showResult({empty:'rce-basis',body:'rcb-basis',num:'rn-basis',steps:'rs-basis'},{answer:d.result,langkah:d.langkah});
-    // basis grid
     const labels = {decimal:'Decimal (10)',binary:'Binary (2)',octal:'Octal (8)',hexadecimal:'Hex (16)'};
     document.getElementById('rg-basis').innerHTML =
       Object.entries(d.semua).map(([k,v])=>`
@@ -327,7 +321,7 @@ async function konversiBasis() {
           <div class="bc-val">${esc(v)}</div>
         </div>`).join('');
     loadHistory();
-  } catch { loading(btn,false); showErr('Gagal terhubung ke server.'); }
+  } catch(err) { loading(btn,false); showErr('Gagal terhubung ke server.'); }
 }
 
 /* ===== SUHU ===== */
@@ -358,7 +352,7 @@ async function konversiSuhu() {
     document.getElementById('rs-suhu').innerHTML =
       (d.langkah||[]).map(l=>`<div class="step-row">${esc(l)}</div>`).join('');
     loadHistory();
-  } catch { loading(btn,false); showErr('Gagal terhubung ke server.'); }
+  } catch(err) { loading(btn,false); showErr('Gagal terhubung ke server.'); }
 }
 
 /* ===== UANG ===== */
@@ -376,7 +370,7 @@ async function konversiUang() {
     if (d.error) return showErr(d.error);
     showResult({empty:'rce-uang',body:'rcb-uang',num:'rn-uang',steps:'rs-uang'},{answer:`${d.result} ${ke}`,langkah:d.langkah});
     loadHistory();
-  } catch { loading(btn,false); showErr('Gagal terhubung ke server.'); }
+  } catch(err) { loading(btn,false); showErr('Gagal terhubung ke server.'); }
 }
 
 /* ===== FAKTORIAL ===== */
@@ -394,7 +388,7 @@ async function hitungFaktorial() {
     document.getElementById('rf-fakt').textContent = d.rumus;
     document.getElementById('rs-fakt').innerHTML = (d.langkah||[]).map(l=>`<div class="step-row">${esc(l)}</div>`).join('');
     loadHistory();
-  } catch { loading(btn,false); showErr('Gagal terhubung ke server.'); }
+  } catch(err) { loading(btn,false); showErr('Gagal terhubung ke server.'); }
 }
 
 /* ===== FIBONACCI ===== */
@@ -413,7 +407,7 @@ async function hitungFibonacci() {
       <span class="fib-chip ${i===parseInt(n)?'hl':''}">${v}</span>`).join('');
     document.getElementById('rs-fib').innerHTML = (d.langkah||[]).map(l=>`<div class="step-row">${esc(l)}</div>`).join('');
     loadHistory();
-  } catch { loading(btn,false); showErr('Gagal terhubung ke server.'); }
+  } catch(err) { loading(btn,false); showErr('Gagal terhubung ke server.'); }
 }
 
 /* ===== HISTORY ===== */
@@ -430,7 +424,7 @@ async function loadHistory() {
         <div class="hist-op">${esc(h.operasi)}</div>
         <div class="hist-res">= ${esc(h.hasil)}</div>
       </div>`).join('');
-  } catch {}
+  } catch(err) {}
 }
 async function clearHistory() {
   await fetch('/clear-history',{method:'POST'});
@@ -439,13 +433,13 @@ async function clearHistory() {
 
 /* ===== STANDARD CALCULATOR ===== */
 const std = {
-  display: '0',       // angka yang tampil di layar
-  prev: null,         // angka sebelumnya
-  op: null,           // operator aktif (+, -, ×, ÷)
-  waitingForNext: false, // sedang tunggu input baru setelah op
-  history: [],        // riwayat lokal standar
-  justCalc: false,    // baru saja tekan =
-  lastOp: null,       // untuk repeat = (e.g. 5+5==)
+  display: '0',
+  prev: null,
+  op: null,
+  waitingForNext: false,
+  history: [],
+  justCalc: false,
+  lastOp: null,
   lastNum: null,
 };
 
@@ -456,13 +450,8 @@ function stdUpdateScreen() {
   const expr = document.getElementById('std-expr');
   const sub  = document.getElementById('std-sub');
   if (!expr) return;
-  // format number: add thousand separator if integer
-  let disp = std.display;
-  expr.textContent = disp;
-  // sub shows running expression
-  if (std.prev !== null && std.op && std.waitingForNext) {
-    sub.textContent = `${std.prev} ${stdOpDisplay[std.op]}`;
-  } else if (std.prev !== null && std.op) {
+  expr.textContent = std.display;
+  if (std.prev !== null && std.op) {
     sub.textContent = `${std.prev} ${stdOpDisplay[std.op]}`;
   } else {
     sub.textContent = '';
@@ -486,7 +475,6 @@ function stdOp(opSymbol) {
   const op = stdOpMap[opSymbol];
   const current = parseFloat(std.display);
 
-  // chain operations
   if (std.prev !== null && !std.waitingForNext && std.op) {
     const result = stdCalculate(std.prev, current, std.op);
     std.display = stdFormat(result);
@@ -499,7 +487,6 @@ function stdOp(opSymbol) {
   std.waitingForNext = true;
   std.justCalc = false;
 
-  // highlight active op button
   document.querySelectorAll('#tab-standar .nk-op2').forEach(b => b.classList.remove('active-op'));
   document.querySelectorAll('#tab-standar .nk-op2').forEach(b => {
     if (b.textContent.trim() === opSymbol) b.classList.add('active-op');
@@ -510,11 +497,8 @@ function stdOp(opSymbol) {
 
 function stdEquals() {
   const current = parseFloat(std.display);
-  let result;
+  if (std.op === null && std.lastOp === null) return;
 
-  if (std.op === null) return;
-
-  // support repeat = (press = multiple times)
   const b = std.waitingForNext ? (std.lastNum !== null ? std.lastNum : current) : current;
   const a = std.prev !== null ? std.prev : current;
 
@@ -523,8 +507,7 @@ function stdEquals() {
     std.lastOp  = std.op;
   }
 
-  result = stdCalculate(a, b, std.op || std.lastOp);
-
+  const result = stdCalculate(a, b, std.op || std.lastOp);
   const exprStr = `${a} ${stdOpDisplay[std.op || std.lastOp]} ${b}`;
   stdAddHistory(exprStr, stdFormat(result));
 
@@ -533,12 +516,10 @@ function stdEquals() {
   std.waitingForNext = true;
   std.justCalc = true;
 
-  // remove op highlight
   document.querySelectorAll('#tab-standar .nk-op2').forEach(b => b.classList.remove('active-op'));
 
   const sub = document.getElementById('std-sub');
   if (sub) sub.textContent = `${exprStr} =`;
-
   const expr = document.getElementById('std-expr');
   if (expr) expr.textContent = std.display;
 }
@@ -549,14 +530,13 @@ function stdCalculate(a, b, op) {
     case '+': return a + b;
     case '-': return a - b;
     case '*': return a * b;
-    case '/': return b === 0 ? showErr('Tidak bisa dibagi nol!') || 0 : a / b;
+    case '/': return b === 0 ? (showErr('Tidak bisa dibagi nol!'), 0) : a / b;
     default: return b;
   }
 }
 
 function stdFormat(n) {
   if (n === null || n === undefined || isNaN(n)) return '0';
-  // if float with many decimals, round to 10 places
   if (!Number.isInteger(n)) {
     n = parseFloat(n.toPrecision(12));
   }
@@ -586,6 +566,7 @@ function stdInput(fn) {
       result = 1 / current;
       exprStr = `1/(${current})`;
       break;
+    default: return;
   }
   stdAddHistory(exprStr, stdFormat(result));
   std.display = stdFormat(result);
@@ -654,7 +635,6 @@ function stdRenderHistory() {
 }
 
 function stdRecall(i) {
-  // clicking history item pastes result back to display
   const item = std.history[i];
   if (!item) return;
   std.display = item.result;
@@ -663,25 +643,8 @@ function stdRecall(i) {
   stdUpdateScreen();
 }
 
-/* keyboard support for standar tab */
-document.addEventListener('keydown', e => {
-  const pane = document.querySelector('.tab-pane.active');
-  if (!pane || pane.id !== 'tab-standar') return;
-
-  if (e.key >= '0' && e.key <= '9')  { e.preventDefault(); stdNum(e.key); }
-  else if (e.key === '.')             { e.preventDefault(); stdNum('.'); }
-  else if (e.key === '+')             { e.preventDefault(); stdOp('＋'); }
-  else if (e.key === '-')             { e.preventDefault(); stdOp('－'); }
-  else if (e.key === '*')             { e.preventDefault(); stdOp('×'); }
-  else if (e.key === '/')             { e.preventDefault(); stdOp('÷'); }
-  else if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); stdEquals(); }
-  else if (e.key === 'Backspace')     { e.preventDefault(); stdDelete(); }
-  else if (e.key === 'Escape')        { e.preventDefault(); stdClearAll(); }
-  else if (e.key === 'Delete')        { e.preventDefault(); stdClearEntry(); }
-  else if (e.key === '%')             { e.preventDefault(); stdInput('percent'); }
-});
-
 /* ===== INIT ===== */
 loadHistory();
 updateScreen('arith');
+updateScreen('logic');
 stdUpdateScreen();
